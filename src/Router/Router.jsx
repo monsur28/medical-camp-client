@@ -1,6 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import Main from "../Pages/Main/Main";
 import Home from "../Pages/Home/Home";
+import Login from "../Pages/Login/Login";
+import Register from "../Pages/Register/Register";
+import AvailableMedCamp from "../Pages/AvailableMedCamp/AvailableMedCamp";
+import PrivateRoute from "../Router/PrivateRoute";
+import CampDetails from "../Pages/CampDetails/CampDetails";
 
 export const router = createBrowserRouter([
   {
@@ -10,6 +15,28 @@ export const router = createBrowserRouter([
       {
         path: "/",
         element: <Home></Home>,
+      },
+      {
+        path: "/login",
+        element: <Login></Login>,
+      },
+      {
+        path: "/register",
+        element: <Register></Register>,
+      },
+      {
+        path: "/availableCamps",
+        element: <AvailableMedCamp></AvailableMedCamp>,
+      },
+      {
+        path: "/campdetails/:id",
+        element: (
+          <PrivateRoute>
+            <CampDetails></CampDetails>
+          </PrivateRoute>
+        ),
+        loader: ({ params }) =>
+          fetch(`http://localhost:5000/camps/${params.id}`),
       },
     ],
   },
