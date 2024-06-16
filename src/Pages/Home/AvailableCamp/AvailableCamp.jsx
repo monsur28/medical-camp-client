@@ -2,11 +2,12 @@ import { ImPriceTags } from "react-icons/im";
 import useCamp from "../../../Hooks/useCamp";
 import { MdLocationPin } from "react-icons/md";
 import { IoIosTime } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 const AvailableCamp = () => {
   const [camps] = useCamp();
   return (
-    <div >
+    <div>
       <h2 className="text-6xl text-center">Available Camps</h2>
       <div className="flex-1 h-px sm:w-16 dark:bg-black"></div>
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -45,16 +46,18 @@ const AvailableCamp = () => {
                     {item.dateTime}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="px-2 py-2 bg-red-400 font-semibold border border-solid rounded dark:border-gray-800 dark:text-gray-800"
-                >
-                  Join Camp
-                </button>
               </div>
             </div>
           </>
         ))}
+        <Link to="/availableCamps">
+          <button
+            type="button"
+            className="= px-4 py-2 bg-red-400 font-semibold border border-solid rounded dark:border-gray-800 dark:text-gray-800"
+          >
+            See All
+          </button>
+        </Link>
       </div>
     </div>
   );

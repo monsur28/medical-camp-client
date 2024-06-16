@@ -8,6 +8,7 @@ import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const MySwal = withReactContent(Swal);
 
@@ -81,6 +82,9 @@ const AvailableMedCamp = () => {
 
   return (
     <div>
+      <Helmet>
+        <title>MedCamp | Available Camps</title>
+      </Helmet>
       <h2 className="text-6xl text-center">Available Camps</h2>
       <div className="flex-1 h-px sm:w-16 dark:bg-black"></div>
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">

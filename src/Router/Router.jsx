@@ -6,6 +6,8 @@ import Register from "../Pages/Register/Register";
 import AvailableMedCamp from "../Pages/AvailableMedCamp/AvailableMedCamp";
 import PrivateRoute from "../Router/PrivateRoute";
 import CampDetails from "../Pages/CampDetails/CampDetails";
+import Dashboard from "../Pages/Dashboard/Dashboard";
+import RegisteredCamps from "../Pages/Dashboard/RegisterdCamps/RegisteredCamps";
 
 export const router = createBrowserRouter([
   {
@@ -37,6 +39,16 @@ export const router = createBrowserRouter([
         ),
         loader: ({ params }) =>
           fetch(`http://localhost:5000/camps/${params.id}`),
+      },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
+    children: [
+      {
+        path: "registeredCamps",
+        element: <RegisteredCamps></RegisteredCamps>,
       },
     ],
   },
