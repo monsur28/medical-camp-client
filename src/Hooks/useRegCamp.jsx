@@ -4,11 +4,11 @@ import useAuth from "./useAuth";
 
 const useRegCamp = () => {
   const axiosSecure = useAxiosSecure();
-  //   const { user } = useAuth();
+  const { user } = useAuth();
   const { refetch, data: joinCamp = [] } = useQuery({
-    queryKey: ["joinCamp"],
+    queryKey: ["registeredCamp", user?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/joinCamp`);
+      const res = await axiosSecure.get(`/joinCamp/${user.email}`);
       return res.data;
     },
   });

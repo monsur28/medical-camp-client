@@ -35,7 +35,7 @@ const AvailableMedCamp = () => {
     const location = form.location.value;
     const healthcareProfessional = form.healthcareProfessional.value;
     const participantName = user?.displayName;
-    const participantEmail = user?.email;
+    const email = user?.email;
     const age = form.age.value;
     const phone = form.phone.value;
     const gender = form.gender.value;
@@ -46,37 +46,54 @@ const AvailableMedCamp = () => {
       location,
       healthcareProfessional,
       participantName,
-      participantEmail,
+      email,
       age,
       phone,
       gender,
       emergencyContact,
     };
 
-    try {
-      const res = await axiosSecure.post("/joinCamp", campData);
-      if (res.data.insertedId) {
-        navigate("/availableCamps");
-        MySwal.fire({
-          title: "Good job!",
-          text: "Your Camp Joining Request was successful",
-          icon: "success",
-        });
+    if (user && user.email) {
+      try {
+        const res = await axiosSecure.post("/joinCamp", campData);
+        if (res.data.insertedId) {
+          MySwal.fire({
+            title: "Good job!",
+            text: "Your Camp Joining Request was successful",
+            icon: "success",
+          });
+          navigate("/availableCamps");
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          MySwal.fire({
+            title: "Error",
+            text: error.response.data.message,
+            icon: "error",
+          });
+        } else {
+          MySwal.fire({
+            title: "Error",
+            text: "An unexpected error occurred.",
+            icon: "error",
+          });
+        }
       }
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        MySwal.fire({
-          title: "Error",
-          text: error.response.data.message,
-          icon: "error",
-        });
-      } else {
-        MySwal.fire({
-          title: "Error",
-          text: "An unexpected error occurred.",
-          icon: "error",
-        });
-      }
+    } else {
+      Swal.fire({
+        title: "You are not Logged In",
+        text: "Please login to Join the Camp?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, login!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          //   send the user to the login page
+          navigate("/login", { state: { from: location } });
+        }
+      });
     }
   };
 
@@ -186,7 +203,7 @@ const AvailableMedCamp = () => {
                   />
                   <input
                     type="text"
-                    name="participantEmail"
+                    name="email"
                     placeholder="Participant Email"
                     defaultValue={user?.email}
                     className="input input-bordered w-full"

@@ -84,8 +84,8 @@ const Dashboard = () => {
       <Helmet>
         <title>MedCamp | Dashboard</title>
       </Helmet>
-      <div className="flex h-screen">
-        <div className="w-64 bg-gradient-to-b from-blue-200 to-blue-400 text-gray-800 p-5">
+      <div className="flex max-h-fit">
+        <div className="w-full max-h-fit bg-gradient-to-b from-blue-200 to-blue-400 text-gray-800 p-5">
           <div className="mb-10">
             <div className="text-2xl font-bold mb-2">Dashboard</div>
           </div>
