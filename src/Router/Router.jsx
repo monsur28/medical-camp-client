@@ -8,6 +8,9 @@ import PrivateRoute from "../Router/PrivateRoute";
 import CampDetails from "../Pages/CampDetails/CampDetails";
 import Dashboard from "../Pages/Dashboard/Dashboard";
 import RegisteredCamps from "../Pages/Dashboard/RegisterdCamps/RegisteredCamps";
+import AllUsers from "../Pages/Dashboard/AllUsers/AllUsers";
+import AdminRoute from "./AdminRoute";
+import AddCampPage from "../Pages/Dashboard/AddACamp.jsx/AddACamp";
 
 export const router = createBrowserRouter([
   {
@@ -42,13 +45,40 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // Dashboard Route
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: (
+      <PrivateRoute>
+        <Dashboard />
+      </PrivateRoute>
+    ),
     children: [
       {
         path: "registeredCamps",
-        element: <RegisteredCamps></RegisteredCamps>,
+        element: (
+          <PrivateRoute>
+            <RegisteredCamps></RegisteredCamps>
+          </PrivateRoute>
+        ),
+      },
+
+      // Admin Routes
+      {
+        path: "allUsers",
+        element: (
+          <AdminRoute>
+            <AllUsers></AllUsers>
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "add-a-camp",
+        element: (
+          <AdminRoute>
+            <AddCampPage></AddCampPage>
+          </AdminRoute>
+        ),
       },
     ],
   },

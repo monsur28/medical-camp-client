@@ -3,11 +3,14 @@ import banner from "../../assets/login.jpg";
 import useAuth from "../../Hooks/useAuth";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { Helmet } from "react-helmet-async";
+import useAxiosPublic from "../../Hooks/useAxiosPublic";
 const MySwal = withReactContent(Swal);
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginUser } = useAuth();
+  const { loginUser, googleSignIn } = useAuth();
+  const axiosPublic = useAxiosPublic();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,8 +35,28 @@ const Login = () => {
         });
       });
   };
+
+  const handleGoogleSignIn = () => {
+    googleSignIn()
+      .then((result) => {
+        const userInfo = {
+          email: result.user?.email,
+          name: result.user?.displayName,
+        };
+        axiosPublic.post("/users", userInfo).then((res) => {
+          console.log(res.data);
+          navigate("/");
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   return (
     <div>
+      <Helmet>
+        <title>MedCamp | Login</title>
+      </Helmet>
       <section className="p-6 dark:bg-gray-100 dark:text-gray-800">
         <div className="container grid gap-6 mx-auto text-center lg:grid-cols-2 xl:grid-cols-2">
           <div className="w-full  p-4 rounded-md shadow sm:p-8 dark:bg-gray-50 dark:text-gray-800">
@@ -53,6 +76,7 @@ const Login = () => {
             </p>
             <div className="my-6 space-y-4">
               <button
+                onClick={handleGoogleSignIn}
                 aria-label="Login with Google"
                 type="button"
                 className="flex items-center justify-center w-full p-4 space-x-4 border rounded-md focus:ring-2 focus:ring-offset-1 dark:border-gray-600 focus:dark:ring-violet-600"
@@ -143,7 +167,7 @@ const Login = () => {
                   </a>
                 </div>
               </div>
-              <button className="btn w-full p-3 text-center rounded-sm dark:text-gray-50 dark:bg-[#D1A054] ">
+              <button className="btn btn-success w-full p-3 text-center rounded-sm dark:text-gray-50 dark:bg-[#D1A054] ">
                 Log in
               </button>
             </form>
