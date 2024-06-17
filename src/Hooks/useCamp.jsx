@@ -4,11 +4,7 @@ import useAxiosPublic from "./useAxiosPublic";
 const useCamp = () => {
   const axiosPublic = useAxiosPublic();
 
-  const {
-    data: camps = [],
-    isPending: loading,
-    refetch,
-  } = useQuery({
+  const { refetch, data: camps = [] } = useQuery({
     queryKey: ["camps"],
     queryFn: async () => {
       const res = await axiosPublic.get("/camps");
@@ -16,7 +12,7 @@ const useCamp = () => {
     },
   });
 
-  return [camps, loading, refetch];
+  return [camps, refetch];
 };
 
 export default useCamp;

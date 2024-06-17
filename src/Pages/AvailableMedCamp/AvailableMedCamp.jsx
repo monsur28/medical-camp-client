@@ -62,7 +62,7 @@ const AvailableMedCamp = () => {
             text: "Your Camp Joining Request was successful",
             icon: "success",
           });
-          navigate("/availableCamps");
+          closeModal(null);
         }
       } catch (error) {
         if (error.response && error.response.status === 400) {

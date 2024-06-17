@@ -3,9 +3,11 @@ import useRegCamp from "../../../Hooks/useRegCamp";
 import { FaTrashAlt } from "react-icons/fa";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
+import useAuth from "../../../Hooks/useAuth";
 
 const RegisteredCamps = () => {
   const [joinCamp, refetch] = useRegCamp();
+  const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const totalFees = joinCamp.reduce((total, item) => {
     const campFee = parseFloat(item.campfees.replace("$", ""));
@@ -16,7 +18,7 @@ const RegisteredCamps = () => {
     return total + campFee;
   }, 0);
 
-  const handleDelete = (id) => {
+  const handleDelete = () => {
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -27,12 +29,12 @@ const RegisteredCamps = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosSecure.delete(`/joinCamp/${id}`).then((res) => {
+        axiosSecure.delete(`/joinCamp/${user?.email}`).then((res) => {
           if (res.data.deletedCount > 0) {
             refetch();
             Swal.fire({
               title: "Deleted!",
-              text: "Your file has been deleted.",
+              text: "Your Camp Registration has been deleted.",
               icon: "success",
             });
           }
@@ -50,9 +52,28 @@ const RegisteredCamps = () => {
         <h2 className="text-4xl">Registered Camps: {joinCamp.length}</h2>
         <h2 className="text-4xl">Total Price: ${totalFees.toFixed(2)}</h2>
         {joinCamp.length ? (
-          <Link to="/dashboard/payment">
-            <button className="btn btn-primary">Pay</button>
-          </Link>
+          <div>
+            <button
+              className="btn btn-success"
+              onClick={() => document.getElementById("my_modal_1").showModal()}
+            >
+              Pay
+            </button>
+            <dialog id="my_modal_1" className="modal">
+              <div className="modal-box">
+                <h3 className="font-bold text-lg">Hello!</h3>
+                <p className="py-4">
+                  Press ESC key or click the button below to close
+                </p>
+                <div className="modal-action">
+                  <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn">Close</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
+          </div>
         ) : (
           <button disabled className="btn btn-primary">
             Pay
