@@ -41,6 +41,7 @@ const AvailableMedCamp = () => {
     const gender = form.gender.value;
     const emergencyContact = form.emergencyContact.value;
     const campData = {
+      campId: selectedCamp._id,
       campName,
       campfees,
       location,
@@ -59,7 +60,7 @@ const AvailableMedCamp = () => {
         if (res.data.insertedId) {
           MySwal.fire({
             title: "Good job!",
-            text: "Your Camp Joining Request was successful",
+            text: "Your Camp Joining Request is on Pending Please Pay to Join",
             icon: "success",
           });
           closeModal(null);

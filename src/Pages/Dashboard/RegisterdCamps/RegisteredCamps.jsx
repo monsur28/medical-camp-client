@@ -1,16 +1,20 @@
-import { Link } from "react-router-dom";
 import useRegCamp from "../../../Hooks/useRegCamp";
 import { FaTrashAlt } from "react-icons/fa";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import useAuth from "../../../Hooks/useAuth";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import CheckoutForm from "../../Dashboard/Payment/CheckoutForm";
+
+const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_GATEWAY);
 
 const RegisteredCamps = () => {
   const [joinCamp, refetch] = useRegCamp();
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const totalFees = joinCamp.reduce((total, item) => {
-    const campFee = parseFloat(item.campfees.replace("$", ""));
+    const campFee = parseInt(item.campfees.replace("$", ""));
     if (isNaN(campFee)) {
       console.warn(`Invalid camp fee for item:`, item);
       return total;
@@ -29,19 +33,30 @@ const RegisteredCamps = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axiosSecure.delete(`/joinCamp/${user?.email}`).then((res) => {
-          if (res.data.deletedCount > 0) {
-            refetch();
+        axiosSecure
+          .delete(`/campData/${user?.email}`)
+          .then((res) => {
+            if (res.data.deletedCount > 0) {
+              refetch();
+              Swal.fire({
+                title: "Deleted!",
+                text: "Your Camp Registration has been deleted.",
+                icon: "success",
+              });
+            }
+          })
+          .catch((error) => {
             Swal.fire({
-              title: "Deleted!",
-              text: "Your Camp Registration has been deleted.",
-              icon: "success",
+              title: "Error!",
+              text: "Something went wrong!",
+              icon: "error",
             });
-          }
-        });
+            console.error("Deletion error:", error);
+          });
       }
     });
   };
+
   return (
     <div>
       <h2 className="text-4xl text-center font-semibold">
@@ -50,7 +65,7 @@ const RegisteredCamps = () => {
       <hr className="my-4 border-t border-gray-900" />
       <div className="flex justify-evenly mb-8">
         <h2 className="text-4xl">Registered Camps: {joinCamp.length}</h2>
-        <h2 className="text-4xl">Total Price: ${totalFees.toFixed(2)}</h2>
+        <h2 className="text-4xl">Total Price: ${totalFees}</h2>
         {joinCamp.length ? (
           <div>
             <button
@@ -61,10 +76,13 @@ const RegisteredCamps = () => {
             </button>
             <dialog id="my_modal_1" className="modal">
               <div className="modal-box">
-                <h3 className="font-bold text-lg">Hello!</h3>
-                <p className="py-4">
-                  Press ESC key or click the button below to close
-                </p>
+                <h2 className="text-4xl text-center font-semibold">
+                  Payment : ${totalFees}
+                </h2>
+                <hr className="my-4 border-t border-gray-900" />
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm />
+                </Elements>
                 <div className="modal-action">
                   <form method="dialog">
                     {/* if there is a button in form, it will close the modal */}
@@ -112,37 +130,38 @@ const RegisteredCamps = () => {
           </thead>
           <tbody>
             {joinCamp.map((item, index) => (
-              <>
-                <tr className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-                  <td className="px-6 py-4">{index + 1}</td>
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+              <tr
+                key={item._id}
+                className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
+              >
+                <td className="px-6 py-4">{index + 1}</td>
+                <th
+                  scope="row"
+                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                >
+                  {item.campName}
+                </th>
+                <td className="px-6 py-4">{item.campfees}</td>
+                <td className="px-6 py-4">{item.participantName}</td>
+                <td className="px-6 py-4">{item.paymentStatus}</td>
+                <td className="px-6 py-4">{item.confirmationStatus}</td>
+                <td className="px-6 py-4">
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="btn btn-ghost btn-lg"
                   >
-                    {item.campName}
-                  </th>
-                  <td className="px-6 py-4">{item.campfees}</td>
-                  <td className="px-6 py-4">{item.participantName}</td>
-                  <td className="px-6 py-4">$2999</td>
-                  <td className="px-6 py-4">$2999</td>
-                  <td className=" px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      className="btn btn-ghost btn-lg"
-                    >
-                      <FaTrashAlt className="text-red-600"></FaTrashAlt>
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    <a
-                      href="#"
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    >
-                      Edit
-                    </a>
-                  </td>
-                </tr>
-              </>
+                    <FaTrashAlt className="text-red-600" />
+                  </button>
+                </td>
+                <td className="px-6 py-4">
+                  <a
+                    href="#"
+                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                  >
+                    Edit
+                  </a>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>

@@ -6,9 +6,9 @@ const useRegCamp = () => {
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
   const { refetch, data: joinCamp = [] } = useQuery({
-    queryKey: ["registeredCamp", user?.email],
+    queryKey: ["joinCamp", user?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/joinCamp/${user.email}`);
+      const res = await axiosSecure.get(`/joinCamp/${user?.email}`);
       return res.data;
     },
   });
