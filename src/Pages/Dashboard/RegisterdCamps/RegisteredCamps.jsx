@@ -1,3 +1,4 @@
+import { useState } from "react";
 import useRegCamp from "../../../Hooks/useRegCamp";
 import { FaTrashAlt } from "react-icons/fa";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
@@ -6,6 +7,7 @@ import useAuth from "../../../Hooks/useAuth";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "../../Dashboard/Payment/CheckoutForm";
+import { useQuery } from "@tanstack/react-query";
 
 const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_GATEWAY);
 
@@ -13,6 +15,9 @@ const RegisteredCamps = () => {
   const [joinCamp, refetch] = useRegCamp();
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
+  const [selectedCamp, setSelectedCamp] = useState(null);
+  const [selectedFeedbackCamp, setSelectedFeedbackCamp] = useState(null);
+
   const totalFees = joinCamp.reduce((total, item) => {
     const campFee = parseInt(item.campfees.replace("$", ""));
     if (isNaN(campFee)) {
@@ -21,6 +26,27 @@ const RegisteredCamps = () => {
     }
     return total + campFee;
   }, 0);
+
+  const { data: payments = [] } = useQuery({
+    queryKey: ["payments", user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/payments/${user.email}`);
+      return res.data;
+    },
+  });
+
+  const openModal = (camp) => {
+    setSelectedCamp(camp);
+  };
+
+  const openFeedbackModal = (camp) => {
+    setSelectedFeedbackCamp(camp);
+  };
+
+  const closeModal = () => {
+    setSelectedCamp(null);
+    setSelectedFeedbackCamp(null);
+  };
 
   const handleDelete = () => {
     Swal.fire({
@@ -34,7 +60,7 @@ const RegisteredCamps = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axiosSecure
-          .delete(`/campData/${user?.email}`)
+          .delete(`/campData/${user.email}`)
           .then((res) => {
             if (res.data.deletedCount > 0) {
               refetch();
@@ -57,6 +83,22 @@ const RegisteredCamps = () => {
     });
   };
 
+  const handleSubmitFeedback = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.name.value;
+    const email = form.email.value;
+    const feedback = form.feedback.value;
+
+    const photoURL = form
+      .querySelector('img[name="photoURL"]')
+      .getAttribute("src");
+
+    const feedbackData = { name, email, photoURL, feedback };
+    console.log(feedbackData);
+    closeModal();
+  };
+
   return (
     <div>
       <h2 className="text-4xl text-center font-semibold">
@@ -66,37 +108,6 @@ const RegisteredCamps = () => {
       <div className="flex justify-evenly mb-8">
         <h2 className="text-4xl">Registered Camps: {joinCamp.length}</h2>
         <h2 className="text-4xl">Total Price: ${totalFees}</h2>
-        {joinCamp.length ? (
-          <div>
-            <button
-              className="btn btn-success"
-              onClick={() => document.getElementById("my_modal_1").showModal()}
-            >
-              Pay
-            </button>
-            <dialog id="my_modal_1" className="modal">
-              <div className="modal-box">
-                <h2 className="text-4xl text-center font-semibold">
-                  Payment : ${totalFees}
-                </h2>
-                <hr className="my-4 border-t border-gray-900" />
-                <Elements stripe={stripePromise}>
-                  <CheckoutForm />
-                </Elements>
-                <div className="modal-action">
-                  <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
-                    <button className="btn">Close</button>
-                  </form>
-                </div>
-              </div>
-            </dialog>
-          </div>
-        ) : (
-          <button disabled className="btn btn-primary">
-            Pay
-          </button>
-        )}
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table className="w-full overflow-x-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -115,10 +126,13 @@ const RegisteredCamps = () => {
                 Participant Name
               </th>
               <th scope="col" className="px-6 py-3">
-                Payment Status
+                Payment
               </th>
               <th scope="col" className="px-6 py-3">
                 Confirmation Status
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Pay
               </th>
               <th scope="col" className="px-6 py-3">
                 Cancellation
@@ -129,43 +143,173 @@ const RegisteredCamps = () => {
             </tr>
           </thead>
           <tbody>
-            {joinCamp.map((item, index) => (
-              <tr
-                key={item._id}
-                className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
-              >
-                <td className="px-6 py-4">{index + 1}</td>
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            {joinCamp.map((item, index) => {
+              const payment = payments.find(
+                (payment) => payment.campId === item._id
+              );
+              const isPaid = payment;
+              const status = payment ? payment.status : "Incomplete";
+
+              return (
+                <tr
+                  key={item._id}
+                  className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
                 >
-                  {item.campName}
-                </th>
-                <td className="px-6 py-4">{item.campfees}</td>
-                <td className="px-6 py-4">{item.participantName}</td>
-                <td className="px-6 py-4">{item.paymentStatus}</td>
-                <td className="px-6 py-4">{item.confirmationStatus}</td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => handleDelete(item._id)}
-                    className="btn btn-ghost btn-lg"
+                  <td className="px-6 py-4">{index + 1}</td>
+                  <th
+                    scope="row"
+                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                   >
-                    <FaTrashAlt className="text-red-600" />
-                  </button>
-                </td>
-                <td className="px-6 py-4">
-                  <a
-                    href="#"
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                  >
-                    Edit
-                  </a>
-                </td>
-              </tr>
-            ))}
+                    {item.campName}
+                  </th>
+                  <td className="px-6 py-4">{item.campfees}</td>
+                  <td className="px-6 py-4">{item.participantName}</td>
+                  <td className="px-6 py-4">{isPaid ? "Paid" : "Unpaid"}</td>
+                  <td className="px-6 py-4">{status}</td>
+                  <td className="px-6 py-4">
+                    {isPaid ? (
+                      <button disabled className="btn btn-primary">
+                        Pay
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => openModal(item)}
+                        className="btn btn-info btn-xl"
+                      >
+                        Pay
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      className="btn btn-outline"
+                      disabled={isPaid}
+                    >
+                      <FaTrashAlt className="text-red-600" />
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => openFeedbackModal(item)}
+                      className="btn btn-outline"
+                      disabled={!isPaid}
+                    >
+                      Feedback
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+      {selectedCamp && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white p-1 rounded"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal modal-open">
+              <div className="max-w-2xl modal-box">
+                <h2 className="text-4xl text-center font-semibold">
+                  Payment: {selectedCamp.campfees}
+                </h2>
+                <hr className="my-4 border-t border-gray-900" />
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm camp={selectedCamp} />
+                </Elements>
+                <div className="modal-action">
+                  <form method="dialog">
+                    <button className="btn" onClick={closeModal}>
+                      Close
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedFeedbackCamp && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white p-1 rounded"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal modal-open">
+              <div className="max-w-2xl modal-box">
+                <h2 className="text-4xl text-center font-semibold">
+                  Feedback for {selectedFeedbackCamp.campName}
+                </h2>
+                <hr className="my-4 border-t border-gray-900" />
+                <form onSubmit={handleSubmitFeedback}>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Username
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      type="text"
+                      name="name"
+                      value={user?.displayName}
+                      readOnly
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Email
+                    </label>
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      type="text"
+                      name="name"
+                      value={user?.email}
+                      readOnly
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Profile Picture
+                    </label>
+                    <img
+                      className="rounded-full h-20 w-20"
+                      src={user?.photoURL}
+                      alt="Profile"
+                      name="photoURL"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Feedback
+                    </label>
+                    <textarea
+                      name="feedback"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      rows="4"
+                      required
+                    ></textarea>
+                  </div>
+                  <div className="modal-action">
+                    <button type="submit" className="btn btn-primary">
+                      Submit
+                    </button>
+                    <button type="button" className="btn" onClick={closeModal}>
+                      Close
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

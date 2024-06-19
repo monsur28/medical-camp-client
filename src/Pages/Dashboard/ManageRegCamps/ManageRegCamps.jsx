@@ -13,6 +13,14 @@ const ManageRegCamps = () => {
     },
   });
 
+  const { data: payments = [] } = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/payments");
+      return res.data;
+    },
+  });
+
   const handleDeleteCamp = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -38,14 +46,35 @@ const ManageRegCamps = () => {
     });
   };
 
+  const handleConfirmPayment = async (id) => {
+    try {
+      const res = await axiosSecure.patch(`/payments/${id}`);
+      if (res.data.modifiedCount > 0) {
+        refetch();
+        Swal.fire({
+          title: "Confirmed!",
+          text: "Payment status has been updated to confirmed.",
+          icon: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      Swal.fire({
+        title: "Error!",
+        text: "There was an issue confirming the payment.",
+        icon: "error",
+      });
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-evenly">
         <h2 className="text-4xl text-center font-semibold">
-          Manage Registered Camps
+          Manage Reg. Camps
         </h2>
         <h2 className="text-4xl text-center font-semibold">
-          Total Users : {joinCamp.length}
+          Total Reg. Camps : {joinCamp.length}
         </h2>
       </div>
       <hr className="my-4 border-t border-gray-900" />
@@ -72,37 +101,55 @@ const ManageRegCamps = () => {
                 Confirmation Status
               </th>
               <th scope="col" className="px-6 py-3">
-                Cancel
+                Actions
               </th>
             </tr>
           </thead>
           <tbody>
-            {joinCamp.map((item, index) => (
-              <tr
-                key={item._id}
-                className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
-              >
-                <td className="px-6 py-4">{index + 1}</td>
-                <th
-                  scope="row"
-                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+            {joinCamp.map((item, index) => {
+              const payment = payments.find(
+                (payment) => payment.campId === item._id
+              );
+              const isPaid = payment ? true : false;
+              const status = payment ? payment.status : "Unconfirmed";
+
+              return (
+                <tr
+                  key={item._id}
+                  className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
                 >
-                  {item.participantName}
-                </th>
-                <td className="px-6 py-4">{item.campName}</td>
-                <td className="px-6 py-4">{item.campfees}</td>
-                <td className="px-6 py-4">{item.paymentStatus}</td>
-                <td className="px-6 py-4">{item.confirmationStatus}</td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => handleDeleteCamp(item._id)}
-                    className="btn btn-ghost btn-xl"
+                  <td className="px-6 py-4">{index + 1}</td>
+                  <th
+                    scope="row"
+                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
                   >
-                    <FaTrashAlt className="text-red-600"></FaTrashAlt>
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    {item.participantName}
+                  </th>
+                  <td className="px-6 py-4">{item.campName}</td>
+                  <td className="px-6 py-4">{item.campfees}</td>
+                  <td className="px-6 py-4">{isPaid ? "Paid" : "Unpaid"}</td>
+                  <td className="px-6 py-4">
+                    {status}
+                    {isPaid && status === "pending" && (
+                      <button
+                        onClick={() => handleConfirmPayment(payment._id)}
+                        className="btn mt-2 btn-sm btn-success"
+                      >
+                        Confirm
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDeleteCamp(item._id)}
+                      className="btn btn-ghost btn-xl"
+                    >
+                      <FaTrashAlt className="text-red-600"></FaTrashAlt>
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

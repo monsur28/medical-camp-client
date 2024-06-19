@@ -5,7 +5,6 @@ import Login from "../Pages/Login/Login";
 import Register from "../Pages/Register/Register";
 import AvailableMedCamp from "../Pages/AvailableMedCamp/AvailableMedCamp";
 import PrivateRoute from "../Router/PrivateRoute";
-import CampDetails from "../Pages/CampDetails/CampDetails";
 import Dashboard from "../Pages/Dashboard/Dashboard";
 import RegisteredCamps from "../Pages/Dashboard/RegisterdCamps/RegisteredCamps";
 import AllUsers from "../Pages/Dashboard/AllUsers/AllUsers";
@@ -13,6 +12,9 @@ import AdminRoute from "./AdminRoute";
 import AddCampPage from "../Pages/Dashboard/AddACamp.jsx/AddACamp";
 import ManageCamp from "../Pages/Home/ManageCamp/ManageCamp";
 import ManageRegCamps from "../Pages/Dashboard/ManageRegCamps/ManageRegCamps";
+import UserProfile from "../Pages/Dashboard/UserProfile.jsx/UserProfile";
+import PaymentHistory from "../Pages/Dashboard/PaymentHistory/PaymentHistory";
+import UserAnalytics from "../Pages/Dashboard/UserAnalytics/UserAnalytics";
 
 export const router = createBrowserRouter([
   {
@@ -35,16 +37,6 @@ export const router = createBrowserRouter([
         path: "/availableCamps",
         element: <AvailableMedCamp></AvailableMedCamp>,
       },
-      {
-        path: "/campdetails/:id",
-        element: (
-          <PrivateRoute>
-            <CampDetails></CampDetails>
-          </PrivateRoute>
-        ),
-        loader: ({ params }) =>
-          fetch(`http://localhost:5000/camps/${params.id}`),
-      },
     ],
   },
   // Dashboard Route
@@ -61,6 +53,30 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <RegisteredCamps></RegisteredCamps>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "participant-profile",
+        element: (
+          <PrivateRoute>
+            <UserProfile></UserProfile>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "paymentHistory",
+        element: (
+          <PrivateRoute>
+            <PaymentHistory></PaymentHistory>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "analytics",
+        element: (
+          <PrivateRoute>
+            <UserAnalytics></UserAnalytics>
           </PrivateRoute>
         ),
       },

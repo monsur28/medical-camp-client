@@ -27,45 +27,40 @@ const Register = () => {
   const axiosPublic = useAxiosPublic();
 
   const onSubmit = (data) => {
-    const { email, password } = data;
+    const { email, password, name, photoURL } = data;
     if (password.length < 6) {
-      setRegisterError("Password Should be at least 6 characters or longer");
+      setRegisterError("Password should be at least 6 characters long");
       return;
     } else if (!/[A-Z]/.test(password)) {
-      setRegisterError("Must have an Uppercase letter in the password");
+      setRegisterError("Password must contain at least one uppercase letter");
       return;
     } else if (!/[0-9]/.test(password)) {
-      setRegisterError("Your password Should have a Number");
+      setRegisterError("Password must contain at least one number");
       return;
     } else if (!/[a-z]/.test(password)) {
-      setRegisterError("Must have a Lowercase letter in the password");
+      setRegisterError("Password must contain at least one lowercase letter");
       return;
     }
 
     createUser(email, password)
       .then(() => {
-        MySwal.fire({
-          title: "Good job!",
-          text: "Registered Succesfully",
-          icon: "success",
-        });
-        updateUserProfile(data.name, data.photoURL)
+        updateUserProfile(name, email, photoURL)
           .then(() => {
             const userInfo = {
-              name: data.name,
-              email: data.email,
+              name: name,
+              email: email,
             };
             axiosPublic.post("/users", userInfo).then((res) => {
               if (res.data.insertedId) {
-                console.log("user added the database");
+                console.log("User added to the database");
                 reset();
                 MySwal.fire({
                   title: "Good job!",
-                  text: "Registered Succesfully",
+                  text: "Registered Successfully",
                   icon: "success",
                 });
-                navigate("/");
               }
+              navigate("/");
             });
           })
           .catch((error) => {
@@ -130,7 +125,7 @@ const Register = () => {
             className="space-y-6"
           >
             <div className="space-y-1 text-sm">
-              <label htmlFor="Name" className="block dark:text-gray-600">
+              <label htmlFor="name" className="block dark:text-gray-600">
                 Name
               </label>
               <input
@@ -144,18 +139,18 @@ const Register = () => {
               {errors.name && (
                 <span className="text-red-600">This field is required</span>
               )}
-              <label htmlFor="PhotoUrl" className="block dark:text-gray-600">
-                Photo Url
+              <label htmlFor="photoURL" className="block dark:text-gray-600">
+                Photo URL
               </label>
               <input
                 type="text"
                 name="photoURL"
-                id="photoUrl"
-                placeholder="Photo Url"
+                id="photoURL"
+                placeholder="Photo URL"
                 className="w-full px-4 py-3 rounded-md border border-black dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
                 {...register("photoURL")}
               />
-              <label htmlFor="Email" className="block dark:text-gray-600">
+              <label htmlFor="email" className="block dark:text-gray-600">
                 Email
               </label>
               <input
@@ -180,7 +175,7 @@ const Register = () => {
               </label>
               <input
                 type={showPass ? "text" : "password"}
-                placeholder="password"
+                placeholder="Password"
                 name="password"
                 className="w-full px-4 py-3 rounded-md border border-black dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
                 {...register("password", { required: true })}
@@ -244,7 +239,7 @@ const Register = () => {
             </button>
           </div>
           <p className="text-xs text-center sm:px-6 dark:text-gray-600">
-            have an account?
+            Have an account?
             <a
               rel="noopener noreferrer"
               href="#"

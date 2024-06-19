@@ -4,9 +4,8 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../Hooks/useAuth";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
-import useRegCamp from "../../../Hooks/useRegCamp";
 
-const CheckoutForm = () => {
+const CheckoutForm = ({ camp }) => {
   const [error, setError] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [transactionId, setTransactionId] = useState("");
@@ -14,28 +13,23 @@ const CheckoutForm = () => {
   const elements = useElements();
   const axiosSecure = useAxiosSecure();
   const { user } = useAuth();
-  const [joinCamp, refetch] = useRegCamp();
   const navigate = useNavigate();
 
-  const totalFees = joinCamp.reduce((total, item) => {
-    const campFee = parseInt(item.campfees.replace("$", ""));
-    if (isNaN(campFee)) {
-      console.warn(`Invalid camp fee for item:`, item);
-      return total;
-    }
-    return total + campFee;
-  }, 0);
+  const campFee = parseInt(camp.campfees.replace("$", ""));
+  if (isNaN(campFee)) {
+    console.warn(`Invalid camp fee for camp:`, camp);
+  }
 
   useEffect(() => {
-    if (totalFees > 0) {
+    if (campFee > 0) {
       axiosSecure
-        .post("/create-payment-intent", { price: totalFees })
+        .post("/create-payment-intent", { price: campFee })
         .then((res) => {
           console.log(res.data.clientSecret);
           setClientSecret(res.data.clientSecret);
         });
     }
-  }, [axiosSecure, totalFees]);
+  }, [axiosSecure, campFee]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -86,18 +80,18 @@ const CheckoutForm = () => {
         // now save the payment in the database
         const payment = {
           email: user.email,
-          price: totalFees,
+          price: campFee,
           transactionId: paymentIntent.id,
-          date: new Date(), // utc date convert. use moment js to
-          campIds: joinCamp.map((item) => item._id),
-          campItemIds: joinCamp.map((item) => item.campId),
+          date: new Date(),
+          campId: camp._id,
+          campName: camp.campName,
           status: "pending",
         };
 
         const res = await axiosSecure.post("/payments", payment);
         console.log("payment saved", res.data);
-        refetch();
-        if (res.data?.paymentResult?.insertedId) {
+
+        if (paymentIntent.status === "succeeded") {
           Swal.fire({
             position: "center",
             icon: "success",
@@ -105,7 +99,7 @@ const CheckoutForm = () => {
             showConfirmButton: false,
             timer: 1500,
           });
-          //   navigate("/dashboard/paymentHistory");
+          navigate("/dashboard/paymentHistory");
         }
       }
     }
@@ -134,7 +128,7 @@ const CheckoutForm = () => {
         type="submit"
         disabled={!stripe || !clientSecret}
       >
-        Pay
+        Pay {camp.campfees}
       </button>
       <p className="text-red-600">{error}</p>
       {transactionId && (

@@ -7,8 +7,8 @@ import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import useCountCamp from "../Home/useCountCamp";
 
 const MySwal = withReactContent(Swal);
 
@@ -17,7 +17,7 @@ const AvailableMedCamp = () => {
   const axiosSecure = useAxiosSecure();
   const [selectedCamp, setSelectedCamp] = useState(null);
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [participantCounts, refetch] = useCountCamp();
 
   const openModal = (camp) => {
     setSelectedCamp(camp);
@@ -29,72 +29,56 @@ const AvailableMedCamp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      MySwal.fire({
+        title: "Login Required",
+        text: "Please log in to join the camp.",
+        icon: "error",
+      });
+      return;
+    }
+
     const form = e.target;
-    const campName = form.campName.value;
-    const campfees = form.campfees.value;
-    const location = form.location.value;
-    const healthcareProfessional = form.healthcareProfessional.value;
-    const participantName = user?.displayName;
-    const email = user?.email;
-    const age = form.age.value;
-    const phone = form.phone.value;
-    const gender = form.gender.value;
-    const emergencyContact = form.emergencyContact.value;
     const campData = {
       campId: selectedCamp._id,
-      campName,
-      campfees,
-      location,
-      healthcareProfessional,
-      participantName,
-      email,
-      age,
-      phone,
-      gender,
-      emergencyContact,
+      campName: selectedCamp.campName,
+      campfees: selectedCamp.fees,
+      location: selectedCamp.location,
+      healthcareProfessional: selectedCamp.healthcareProfessional,
+      participantName: form.participantName.value,
+      email: form.email.value,
+      age: form.age.value,
+      phone: form.phone.value,
+      gender: form.gender.value,
+      emergencyContact: form.emergencyContact.value,
     };
 
-    if (user && user.email) {
-      try {
-        const res = await axiosSecure.post("/joinCamp", campData);
-        if (res.data.insertedId) {
-          MySwal.fire({
-            title: "Good job!",
-            text: "Your Camp Joining Request is on Pending Please Pay to Join",
-            icon: "success",
-          });
-          closeModal(null);
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 400) {
-          MySwal.fire({
-            title: "Error",
-            text: error.response.data.message,
-            icon: "error",
-          });
-        } else {
-          MySwal.fire({
-            title: "Error",
-            text: "An unexpected error occurred.",
-            icon: "error",
-          });
-        }
+    try {
+      const res = await axiosSecure.post("/joinCamp", campData);
+      if (res.data.insertedId) {
+        refetch();
+        MySwal.fire({
+          title: "Good job!",
+          text: "Your Camp Joining Request is on Pending Please Pay to Join",
+          icon: "success",
+        });
+        closeModal(null);
       }
-    } else {
-      Swal.fire({
-        title: "You are not Logged In",
-        text: "Please login to Join the Camp?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, login!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          //   send the user to the login page
-          navigate("/login", { state: { from: location } });
-        }
-      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        MySwal.fire({
+          title: "Error",
+          text: error.response.data.message,
+          icon: "error",
+        });
+      } else {
+        MySwal.fire({
+          title: "Error",
+          text: "An unexpected error occurred.",
+          icon: "error",
+        });
+      }
     }
   };
 
@@ -117,7 +101,7 @@ const AvailableMedCamp = () => {
               alt=""
             />
             <p className="absolute border border-gray-500 lg:p-1 p-4 bg-green-300 lg:ml-[500px] ml-96 mb-44 rounded-b-xl">
-              Participant- {item.participantCount}
+              Participant: {participantCounts[item.campName] || 0}
             </p>
             <div className="flex flex-col justify-between p-4 leading-normal">
               <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -229,7 +213,7 @@ const AvailableMedCamp = () => {
 
                   <input
                     name="emergencyContact"
-                    type="number"
+                    type="phone"
                     placeholder="Emergency Contact"
                     className="input input-bordered w-full"
                   />

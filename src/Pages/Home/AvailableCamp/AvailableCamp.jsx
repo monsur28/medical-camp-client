@@ -3,9 +3,12 @@ import useCamp from "../../../Hooks/useCamp";
 import { MdLocationPin } from "react-icons/md";
 import { IoIosTime } from "react-icons/io";
 import { Link } from "react-router-dom";
+import useCountCamp from "../useCountCamp";
 
 const AvailableCamp = () => {
   const [camps] = useCamp();
+  const [participantCounts] = useCountCamp();
+
   return (
     <div>
       <h2 className="text-6xl text-center">Available Camps</h2>
@@ -22,8 +25,8 @@ const AvailableCamp = () => {
                 src={item.image}
                 alt=""
               />
-              <p className="absolute border border-gray-500 lg:p-1 p-4 bg-green-300 lg:ml-[500px] ml-96 mb-44 rounded-b-xl">
-                Participant- {item.participantCount}
+              <p className="absolute mt-10 border border-gray-500 lg:p-1 p-4 bg-green-300 lg:ml-[500px] ml-96 mb-44 rounded-b-xl">
+                Participant: {participantCounts[item.campName] || 0}
               </p>
               <div className="flex flex-col justify-between p-4 leading-normal">
                 <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
