@@ -15,6 +15,8 @@ import ManageRegCamps from "../Pages/Dashboard/ManageRegCamps/ManageRegCamps";
 import UserProfile from "../Pages/Dashboard/UserProfile.jsx/UserProfile";
 import PaymentHistory from "../Pages/Dashboard/PaymentHistory/PaymentHistory";
 import UserAnalytics from "../Pages/Dashboard/UserAnalytics/UserAnalytics";
+import Contact from "../Pages/Dashboard/Contact/Contact";
+import OrganizerProfile from "../Pages/Dashboard/OrganizerProfile/OrganizerProfile";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +38,10 @@ export const router = createBrowserRouter([
       {
         path: "/availableCamps",
         element: <AvailableMedCamp></AvailableMedCamp>,
+      },
+      {
+        path: "contact",
+        element: <Contact></Contact>,
       },
     ],
   },
@@ -111,6 +117,14 @@ export const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <ManageRegCamps></ManageRegCamps>
+          </AdminRoute>
+        ),
+      },
+      {
+        path: "organizerProfile",
+        element: (
+          <AdminRoute>
+            <OrganizerProfile></OrganizerProfile>
           </AdminRoute>
         ),
       },

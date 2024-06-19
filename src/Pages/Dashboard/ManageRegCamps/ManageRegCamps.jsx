@@ -13,7 +13,7 @@ const ManageRegCamps = () => {
     },
   });
 
-  const { data: payments = [] } = useQuery({
+  const { data: payments = [], refetch: fetch } = useQuery({
     queryKey: ["payments"],
     queryFn: async () => {
       const res = await axiosSecure.get("/payments");
@@ -50,7 +50,7 @@ const ManageRegCamps = () => {
     try {
       const res = await axiosSecure.patch(`/payments/${id}`);
       if (res.data.modifiedCount > 0) {
-        refetch();
+        fetch();
         Swal.fire({
           title: "Confirmed!",
           text: "Payment status has been updated to confirmed.",

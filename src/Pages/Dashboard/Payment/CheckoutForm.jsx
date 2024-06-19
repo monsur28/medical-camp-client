@@ -25,7 +25,6 @@ const CheckoutForm = ({ camp }) => {
       axiosSecure
         .post("/create-payment-intent", { price: campFee })
         .then((res) => {
-          console.log(res.data.clientSecret);
           setClientSecret(res.data.clientSecret);
         });
     }
@@ -50,11 +49,9 @@ const CheckoutForm = ({ camp }) => {
     });
 
     if (error) {
-      console.log("payment error", error);
       setError(error.message);
     } else {
-      console.log("payment method", paymentMethod);
-      setError("");
+      setError(paymentMethod);
     }
 
     // confirm payment

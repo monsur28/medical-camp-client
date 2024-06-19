@@ -8,6 +8,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "../../Dashboard/Payment/CheckoutForm";
 import { useQuery } from "@tanstack/react-query";
+import useAxiosPublic from "../../../Hooks/useAxiosPublic";
 
 const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_GATEWAY);
 
@@ -17,6 +18,7 @@ const RegisteredCamps = () => {
   const axiosSecure = useAxiosSecure();
   const [selectedCamp, setSelectedCamp] = useState(null);
   const [selectedFeedbackCamp, setSelectedFeedbackCamp] = useState(null);
+  const axiosPublic = useAxiosPublic();
 
   const totalFees = joinCamp.reduce((total, item) => {
     const campFee = parseInt(item.campfees.replace("$", ""));
@@ -30,10 +32,11 @@ const RegisteredCamps = () => {
   const { data: payments = [] } = useQuery({
     queryKey: ["payments", user?.email],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/payments/${user.email}`);
+      const res = await axiosSecure.get(`/payments/${user?.email}`);
       return res.data;
     },
   });
+  console.log(payments);
 
   const openModal = (camp) => {
     setSelectedCamp(camp);
@@ -86,6 +89,11 @@ const RegisteredCamps = () => {
   const handleSubmitFeedback = (e) => {
     e.preventDefault();
     const form = e.target;
+
+    // Assuming you are working with selectedFeedbackCamp to get the correct campId
+    const campId = selectedFeedbackCamp._id; // Use the correct property for campId
+    const transactionId = selectedFeedbackCamp.transactionId; // Assuming you have transactionId stored in selectedFeedbackCamp
+
     const name = form.name.value;
     const email = form.email.value;
     const feedback = form.feedback.value;
@@ -94,9 +102,25 @@ const RegisteredCamps = () => {
       .querySelector('img[name="photoURL"]')
       .getAttribute("src");
 
-    const feedbackData = { name, email, photoURL, feedback };
-    console.log(feedbackData);
-    closeModal();
+    const feedbackData = {
+      name,
+      transactionId, // Assign transactionId from selectedFeedbackCamp
+      campId, // Assign campId from selectedFeedbackCamp
+      email,
+      photoURL,
+      feedback,
+    };
+
+    axiosPublic.post("/feedback", feedbackData).then((res) => {
+      if (res.data.insertedId) {
+        Swal.fire({
+          title: "Good job!",
+          text: "Your feedback is Valuable To Us",
+          icon: "success",
+        });
+      }
+      closeModal();
+    });
   };
 
   return (
@@ -269,7 +293,7 @@ const RegisteredCamps = () => {
                     <input
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       type="text"
-                      name="name"
+                      name="email"
                       value={user?.email}
                       readOnly
                     />

@@ -8,13 +8,14 @@ import useCountCamp from "../useCountCamp";
 const AvailableCamp = () => {
   const [camps] = useCamp();
   const [participantCounts] = useCountCamp();
+  const displayedCamps = camps.slice(0, 4);
 
   return (
     <div>
       <h2 className="text-6xl text-center">Available Camps</h2>
       <div className="flex-1 h-px sm:w-16 dark:bg-black"></div>
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {camps.map((item) => (
+        {displayedCamps.map((item) => (
           <>
             <div
               href="#"

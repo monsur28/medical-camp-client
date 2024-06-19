@@ -2,7 +2,7 @@ import { MdLocationPin } from "react-icons/md";
 import useCamp from "../../Hooks/useCamp";
 import { ImPriceTags } from "react-icons/im";
 import { IoIosTime } from "react-icons/io";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
@@ -18,6 +18,28 @@ const AvailableMedCamp = () => {
   const [selectedCamp, setSelectedCamp] = useState(null);
   const { user } = useAuth();
   const [participantCounts, refetch] = useCountCamp();
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter camps based on search query
+  const filteredCamps = useMemo(() => {
+    return camps.filter((camp) => {
+      // Example: You can adjust this logic based on your specific search criteria
+      return (
+        camp.campName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        camp.dateTime.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        camp.healthcareProfessional
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        camp.fees.includes(searchQuery)
+      );
+    });
+  }, [camps, searchQuery]);
+
+  // Function to handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   const openModal = (camp) => {
     setSelectedCamp(camp);
@@ -88,9 +110,18 @@ const AvailableMedCamp = () => {
         <title>MedCamp | Available Camps</title>
       </Helmet>
       <h2 className="text-6xl text-center">Available Camps</h2>
-      <div className="flex-1 h-px sm:w-16 dark:bg-black"></div>
+      <hr className="my-4 border-t border-gray-900" />
+      <div className="mt-4 mb-4">
+        <input
+          type="text"
+          placeholder="Search camps by name, date, or healthcare professional"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="input input-bordered w-full"
+        />
+      </div>
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {camps.map((item) => (
+        {filteredCamps.map((item) => (
           <div
             key={item.id}
             className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
