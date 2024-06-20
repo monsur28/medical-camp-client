@@ -9,6 +9,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "../../Dashboard/Payment/CheckoutForm";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "../../../Hooks/useAxiosPublic";
+import { Helmet } from "react-helmet-async";
 
 const stripePromise = loadStripe(import.meta.env.VITE_PAYMENT_GATEWAY);
 
@@ -19,6 +20,7 @@ const RegisteredCamps = () => {
   const [selectedCamp, setSelectedCamp] = useState(null);
   const [selectedFeedbackCamp, setSelectedFeedbackCamp] = useState(null);
   const axiosPublic = useAxiosPublic();
+  const [feedbackSubmittedCamps, setFeedbackSubmittedCamps] = useState([]);
 
   const totalFees = joinCamp.reduce((total, item) => {
     const campFee = parseInt(item.campfees.replace("$", ""));
@@ -35,15 +37,24 @@ const RegisteredCamps = () => {
       const res = await axiosSecure.get(`/payments/${user?.email}`);
       return res.data;
     },
+    // Ensure query does not run if user is not defined
+    enabled: !!user?.email,
   });
-  console.log(payments);
 
   const openModal = (camp) => {
     setSelectedCamp(camp);
   };
 
   const openFeedbackModal = (camp) => {
-    setSelectedFeedbackCamp(camp);
+    if (feedbackSubmittedCamps.includes(camp._id)) {
+      Swal.fire({
+        title: "Feedback already submitted!",
+        text: "You have already submitted feedback for this camp.",
+        icon: "info",
+      });
+    } else {
+      setSelectedFeedbackCamp(camp);
+    }
   };
 
   const closeModal = () => {
@@ -51,7 +62,7 @@ const RegisteredCamps = () => {
     setSelectedFeedbackCamp(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = (campId) => {
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -63,7 +74,7 @@ const RegisteredCamps = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axiosSecure
-          .delete(`/campData/${user.email}`)
+          .delete(`/campData/${campId}`)
           .then((res) => {
             if (res.data.deletedCount > 0) {
               refetch();
@@ -90,9 +101,8 @@ const RegisteredCamps = () => {
     e.preventDefault();
     const form = e.target;
 
-    // Assuming you are working with selectedFeedbackCamp to get the correct campId
-    const campId = selectedFeedbackCamp._id; // Use the correct property for campId
-    const transactionId = selectedFeedbackCamp.transactionId; // Assuming you have transactionId stored in selectedFeedbackCamp
+    const campId = selectedFeedbackCamp._id;
+    const transactionId = selectedFeedbackCamp.transactionId;
 
     const name = form.name.value;
     const email = form.email.value;
@@ -104,27 +114,42 @@ const RegisteredCamps = () => {
 
     const feedbackData = {
       name,
-      transactionId, // Assign transactionId from selectedFeedbackCamp
-      campId, // Assign campId from selectedFeedbackCamp
+      transactionId,
+      campId,
       email,
       photoURL,
       feedback,
     };
 
-    axiosPublic.post("/feedback", feedbackData).then((res) => {
-      if (res.data.insertedId) {
+    axiosPublic
+      .post("/feedback", feedbackData)
+      .then((res) => {
+        if (res.data.insertedId) {
+          Swal.fire({
+            title: "Good job!",
+            text: "Your feedback is Valuable To Us",
+            icon: "success",
+          });
+          // Update feedbackSubmittedCamps state
+          setFeedbackSubmittedCamps([...feedbackSubmittedCamps, campId]);
+        }
+        closeModal();
+      })
+      .catch((error) => {
         Swal.fire({
-          title: "Good job!",
-          text: "Your feedback is Valuable To Us",
-          icon: "success",
+          title: "Error!",
+          text: "You Already Feedback this Camp",
+          icon: "error",
         });
-      }
-      closeModal();
-    });
+        console.error("Feedback submission error:", error);
+      });
   };
 
   return (
     <div>
+      <Helmet>
+        <title>MedCamp | My Registered Camps</title>
+      </Helmet>
       <h2 className="text-4xl text-center font-semibold">
         My Registered Camps
       </h2>
@@ -168,11 +193,10 @@ const RegisteredCamps = () => {
           </thead>
           <tbody>
             {joinCamp.map((item, index) => {
-              const payment = payments.find(
+              const isPaid = payments.find(
                 (payment) => payment.campId === item._id
               );
-              const isPaid = payment;
-              const status = payment ? payment.status : "Incomplete";
+              const status = isPaid ? isPaid.status : "Incomplete";
 
               return (
                 <tr
@@ -217,7 +241,9 @@ const RegisteredCamps = () => {
                     <button
                       onClick={() => openFeedbackModal(item)}
                       className="btn btn-outline"
-                      disabled={!isPaid}
+                      disabled={
+                        !isPaid || feedbackSubmittedCamps.includes(item._id)
+                      }
                     >
                       Feedback
                     </button>

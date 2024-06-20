@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useAuth from "../../../Hooks/useAuth";
 import useAxiosPublic from "../../../Hooks/useAxiosPublic";
 import { useQuery } from "@tanstack/react-query";
@@ -33,14 +33,6 @@ const OrganizerProfile = () => {
     email: user?.email || "",
     photoURL: user?.photoURL || "",
   });
-
-  useEffect(() => {
-    setFormValues({
-      name: user?.displayName || "",
-      email: user?.email || "",
-      photoURL: user?.photoURL || "",
-    });
-  }, [user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

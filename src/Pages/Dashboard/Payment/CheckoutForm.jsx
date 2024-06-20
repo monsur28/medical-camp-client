@@ -21,13 +21,21 @@ const CheckoutForm = ({ camp }) => {
   }
 
   useEffect(() => {
-    if (campFee > 0) {
-      axiosSecure
-        .post("/create-payment-intent", { price: campFee })
-        .then((res) => {
-          setClientSecret(res.data.clientSecret);
-        });
-    }
+    const fetchClientSecret = async () => {
+      try {
+        if (campFee > 0) {
+          const response = await axiosSecure.post("/create-payment-intent", {
+            price: campFee,
+          });
+          setClientSecret(response.data.clientSecret);
+        }
+      } catch (error) {
+        console.error("Error fetching client secret:", error);
+        setError("Failed to fetch payment details. Please try again later.");
+      }
+    };
+
+    fetchClientSecret();
   }, [axiosSecure, campFee]);
 
   const handleSubmit = async (event) => {
@@ -39,42 +47,41 @@ const CheckoutForm = ({ camp }) => {
 
     const card = elements.getElement(CardElement);
 
-    if (card === null) {
+    if (!card) {
       return;
     }
 
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setError(paymentMethod);
-    }
-
-    // confirm payment
-    const { paymentIntent, error: confirmError } =
-      await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: card,
-          billing_details: {
-            email: user?.email || "anonymous",
-            name: user?.displayName || "anonymous",
-          },
-        },
+    try {
+      // Create payment method
+      const { error } = await stripe.createPaymentMethod({
+        type: "card",
+        card,
       });
 
-    if (confirmError) {
-      console.log("confirm error");
-    } else {
-      console.log("payment intent", paymentIntent);
+      if (error) {
+        throw new Error(error.message);
+      }
+      // Confirm payment
+      const { paymentIntent, error: confirmError } =
+        await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: card,
+            billing_details: {
+              email: user?.email || "anonymous",
+              name: user?.displayName || "anonymous",
+            },
+          },
+        });
+
+      if (confirmError) {
+        throw new Error(confirmError.message);
+      }
+
       if (paymentIntent.status === "succeeded") {
-        console.log("transaction id", paymentIntent.id);
+        console.log("Payment intent:", paymentIntent);
         setTransactionId(paymentIntent.id);
 
-        // now save the payment in the database
+        // Save payment details in database
         const payment = {
           email: user.email,
           price: campFee,
@@ -82,23 +89,25 @@ const CheckoutForm = ({ camp }) => {
           date: new Date(),
           campId: camp._id,
           campName: camp.campName,
-          status: "pending",
+          status: "pending", // You might update status based on backend response
         };
 
-        const res = await axiosSecure.post("/payments", payment);
-        console.log("payment saved", res.data);
+        const response = await axiosSecure.post("/payments", payment);
+        console.log("Payment saved:", response.data);
 
-        if (paymentIntent.status === "succeeded") {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Thank you for the Payment",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          navigate("/dashboard/paymentHistory");
-        }
+        // Show success message and navigate to payment history
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Thank you for the Payment",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        navigate("/dashboard/paymentHistory");
       }
+    } catch (error) {
+      console.error("Error processing payment:", error.message);
+      setError(error.message || "Payment failed. Please try again.");
     }
   };
 
@@ -127,7 +136,7 @@ const CheckoutForm = ({ camp }) => {
       >
         Pay {camp.campfees}
       </button>
-      <p className="text-red-600">{error}</p>
+      {error && <p className="text-red-600">{error}</p>}
       {transactionId && (
         <p className="text-green-600"> Your transaction id: {transactionId}</p>
       )}
