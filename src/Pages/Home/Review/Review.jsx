@@ -1,13 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "../../../Hooks/useAxiosPublic";
-import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/navigation";
-
-// import required modules
-import { Navigation } from "swiper/modules";
 
 const Review = () => {
   const axiosPublic = useAxiosPublic();
@@ -33,51 +25,190 @@ const Review = () => {
             </h2>
           </div>
           <hr className="my-6 border-t border-gray-900" />
-          <Swiper
-            rewind={true}
-            navigation={true}
-            modules={[Navigation]}
-            className="mySwiper"
-          >
-            {feedback.map((item) => (
-              <SwiperSlide key={item._id}>
-                <figure className="relative rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/10">
-                  <svg
-                    aria-hidden="true"
-                    width="105"
-                    height="78"
-                    className="absolute left-6 top-6 fill-slate-100"
-                  >
-                    <path d="M25.086 77.292c-4.821 0-9.115-1.205-12.882-3.616-3.767-2.561-6.78-6.102-9.04-10.622C1.054 58.534 0 53.411 0 47.686c0-5.273.904-10.396 2.712-15.368 1.959-4.972 4.746-9.567 8.362-13.786a59.042 59.042 0 0 1 12.43-11.3C28.325 3.917 33.599 1.507 39.324 0l11.074 13.786c-6.479 2.561-11.677 5.951-15.594 10.17-3.767 4.219-5.65 7.835-5.65 10.848 0 1.356.377 2.863 1.13 4.52.904 1.507 2.637 3.089 5.198 4.746 3.767 2.41 6.328 4.972 7.684 7.684 1.507 2.561 2.26 5.5 2.26 8.814 0 5.123-1.959 9.19-5.876 12.204-3.767 3.013-8.588 4.52-14.464 4.52Zm54.24 0c-4.821 0-9.115-1.205-12.882-3.616-3.767-2.561-6.78-6.102-9.04-10.622-2.11-4.52-3.164-9.643-3.164-15.368 0-5.273.904-10.396 2.712-15.368 1.959-4.972 4.746-9.567 8.362-13.786a59.042 59.042 0 0 1 12.43-11.3C82.565 3.917 87.839 1.507 93.564 0l11.074 13.786c-6.479 2.561-11.677 5.951-15.594 10.17-3.767 4.219-5.65 7.835-5.65 10.848 0 1.356.377 2.863 1.13 4.52.904 1.507 2.637 3.089 5.198 4.746 3.767 2.41 6.328 4.972 7.684 7.684 1.507 2.561 2.26 5.5 2.26 8.814 0 5.123-1.959 9.19-5.876 12.204-3.767 3.013-8.588 4.52-14.464 4.52Z"></path>
-                  </svg>
-                  <blockquote className="relative max-w-3xl mx-auto text-center ">
-                    <p className="text-lg tracking-tight text-slate-900 ">
-                      {item.feedback}
-                    </p>
-                  </blockquote>
-                  <figcaption className="relative mt-6 flex items-center justify-between border-t border-slate-100 pt-6">
-                    <div>
-                      <div className="font-display text-base text-slate-900">
-                        {item.name}
-                      </div>
-                    </div>
-                    <div className="overflow-hidden rounded-full bg-slate-50">
+
+          {/* Marquee container with two rows */}
+          <div className="overflow-hidden">
+            <div className="marquee-container">
+              {/* Row 1 (scrolls left) */}
+              <div className="marquee-row left-slide">
+                {feedback.map((item) => (
+                  <div key={item._id} className="marquee-item">
+                    <div className="font-[sans-serif] max-w-[410px] h-auto p-6 rounded-lg mx-auto shadow-[0_6px_18px_-6px_rgba(193,195,248)] bg-white relative mt-12">
                       <img
-                        alt=""
-                        className="h-14 w-14 object-cover"
                         src={
                           item.photoURL ||
                           "https://randomuser.me/api/portraits/men/15.jpg"
                         }
+                        className="w-16 h-16 rounded-full absolute right-0 left-0 mx-auto -top-7"
+                        alt="customer"
                       />
+                      <div className="mt-6 text-center">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-gray-800">
+                            {item.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {item.designation}
+                          </p>
+                        </div>
+
+                        <div className="mt-4">
+                          <h2 className="text-lg font-extrabold text-gray-800 mb-2">
+                            {item.title}
+                          </h2>
+                          <p className="text-sm text-gray-800 leading-relaxed">
+                            {item.feedback.slice(0, 100)}...
+                          </p>
+                        </div>
+
+                        <div className="flex justify-center space-x-1 mt-4">
+                          {/* Stars */}
+                          {[...Array(4)].map((_, index) => (
+                            <svg
+                              key={index}
+                              className={`w-5 ${
+                                index < item.rating
+                                  ? "fill-[#facc15]"
+                                  : "fill-[#CED5D8]"
+                              }`}
+                              viewBox="0 0 14 13"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M7 0L9.4687 3.60213L13.6574 4.83688L10.9944 8.29787L11.1145 12.6631L7 11.2L2.8855 12.6631L3.00556 8.29787L0.342604 4.83688L4.5313 3.60213L7 0Z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </figcaption>
-                </figure>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                  </div>
+                ))}
+              </div>
+
+              {/* Row 2 (scrolls right) */}
+              <div className="marquee-row right-slide">
+                {feedback.map((item) => (
+                  <div key={item._id} className="marquee-item">
+                    <div className="font-[sans-serif] max-w-[410px] h-auto p-6 rounded-lg mx-auto shadow-[0_6px_18px_-6px_rgba(193,195,248)] bg-white relative mt-12">
+                      <img
+                        src={
+                          item.photoURL ||
+                          "https://randomuser.me/api/portraits/men/15.jpg"
+                        }
+                        className="w-16 h-16 rounded-full absolute right-0 left-0 mx-auto -top-7"
+                        alt="customer"
+                      />
+                      <div className="mt-6 text-center">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-gray-800">
+                            {item.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {item.designation}
+                          </p>
+                        </div>
+
+                        <div className="mt-4">
+                          <h2 className="text-lg font-extrabold text-gray-800 mb-2">
+                            {item.title}
+                          </h2>
+                          <p className="text-sm text-gray-800 leading-relaxed">
+                            {item.feedback.slice(0, 100)}...
+                          </p>
+                        </div>
+
+                        <div className="flex justify-center space-x-1 mt-4">
+                          {/* Stars */}
+                          {[...Array(4)].map((_, index) => (
+                            <svg
+                              key={index}
+                              className={`w-5 ${
+                                index < item.rating
+                                  ? "fill-[#facc15]"
+                                  : "fill-[#CED5D8]"
+                              }`}
+                              viewBox="0 0 14 13"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M7 0L9.4687 3.60213L13.6574 4.83688L10.9944 8.29787L11.1145 12.6631L7 11.2L2.8855 12.6631L3.00556 8.29787L0.342604 4.83688L4.5313 3.60213L7 0Z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* CSS styles for Marquee effect */}
+      <style>{`
+    .marquee-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Add spacing between the rows */
+  }
+
+  .marquee-row {
+    display: flex;
+    gap: 20px; /* Spacing between items in the row */
+    animation-duration: 20s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    opacity: 1;
+  }
+
+  .left-slide {
+    animation-name: left-slide;
+  }
+
+  .right-slide {
+    animation-name: right-slide;
+  }
+
+  .marquee-item {
+    min-width: 410px; /* Adjust the width of each item */
+    transition: transform 0.2s ease, opacity 0.5s ease;
+  }
+
+  /* Animation for the left sliding row */
+  @keyframes left-slide {
+    0% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    50% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  /* Animation for the right sliding row */
+  @keyframes right-slide {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    50% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  .marquee-item:hover {
+    transform: scale(1.05); /* Slight scaling effect on hover */
+  }
+`}</style>
     </div>
   );
 };

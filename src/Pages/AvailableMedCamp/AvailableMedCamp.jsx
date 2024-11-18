@@ -1,8 +1,8 @@
 import { MdLocationPin } from "react-icons/md";
-import useCamp from "../../Hooks/useCamp";
 import { ImPriceTags } from "react-icons/im";
 import { IoIosTime } from "react-icons/io";
 import { useMemo, useState } from "react";
+import useCamp from "../../Hooks/useCamp";
 import useAuth from "../../Hooks/useAuth";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
@@ -18,13 +18,11 @@ const AvailableMedCamp = () => {
   const [selectedCamp, setSelectedCamp] = useState(null);
   const { user } = useAuth();
   const [participantCounts, refetch] = useCountCamp();
-
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter camps based on search query
   const filteredCamps = useMemo(() => {
     return camps.filter((camp) => {
-      // Example: You can adjust this logic based on your specific search criteria
       return (
         camp.campName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         camp.dateTime.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -36,7 +34,6 @@ const AvailableMedCamp = () => {
     });
   }, [camps, searchQuery]);
 
-  // Function to handle search input change
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -82,186 +79,191 @@ const AvailableMedCamp = () => {
         refetch();
         MySwal.fire({
           title: "Good job!",
-          text: "Your Camp Joining Request is on Pending Please Pay to Join",
+          text: "Your Camp Joining Request is on Pending. Please Pay to Join.",
           icon: "success",
         });
-        closeModal(null);
+        closeModal();
       }
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        MySwal.fire({
-          title: "Error",
-          text: error.response.data.message,
-          icon: "error",
-        });
-      } else {
-        MySwal.fire({
-          title: "Error",
-          text: "An unexpected error occurred.",
-          icon: "error",
-        });
-      }
+      MySwal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "An unexpected error occurred.",
+        icon: "error",
+      });
     }
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Helmet>
         <title>MedCamp | Available Camps</title>
       </Helmet>
-      <h2 className="text-6xl text-center">Available Camps</h2>
-      <hr className="my-4 border-t border-gray-900" />
-      <div className="mt-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search camps by name, date, or healthcare professional"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="input input-bordered w-full"
-        />
-      </div>
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredCamps.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
-          >
-            <img
-              className="relative object-cover w-full h-96 md:h-full md:w-48 md:rounded-none md:rounded-s-lg"
-              src={item.image}
-              alt=""
-            />
-            <p className="absolute border border-gray-500 lg:p-1 p-4 bg-green-300 lg:ml-[500px] ml-96 mb-44 rounded-b-xl">
-              Participant: {participantCounts[item.campName] || 0}
-            </p>
-            <div className="flex flex-col justify-between p-4 leading-normal">
-              <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {item.campName}
-              </h5>
-              <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">
-                {item.description}
-              </p>
-              <div className="flex justify-evenly gap-1">
-                <div className="flex items-center gap-2">
-                  <MdLocationPin />
-                  {item.location}
+      <div className="container mx-auto px-4 py-10">
+        <h2 className="text-4xl font-bold text-center text-gray-800">
+          Available Camps
+        </h2>
+        <p className="text-center text-gray-600 mt-2">
+          Browse and join medical camps tailored for your needs.
+        </p>
+        <div className="mt-6">
+          <input
+            type="text"
+            placeholder="Search camps by name, date, or healthcare professional"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="block w-full max-w-xl mx-auto border rounded-lg px-4 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
+          />
+        </div>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
+          {filteredCamps.map((item) => (
+            <div
+              key={item.id}
+              className="relative flex flex-col sm:flex-row bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 group"
+            >
+              {/* Animated Image Section */}
+              <img
+                src={item.image}
+                alt={item.campName}
+                className="w-full sm:w-1/3 h-64 sm:h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+
+              {/* Content Section */}
+              <div className="relative sm:w-2/3 p-6 flex flex-col justify-between">
+                {/* Badge for Participant Count */}
+                <span className="absolute top-2 right-2 bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-lg shadow-md">
+                  Participants: {participantCounts[item.campName] || 0}
+                </span>
+
+                {/* Camp Title */}
+                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                  {item.campName}
+                </h3>
+
+                {/* Description */}
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-3">
+                  {item.description}
+                </p>
+
+                {/* Camp Details */}
+                <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
+                  <div className="flex items-center gap-1">
+                    <MdLocationPin className="text-blue-500" /> {item.location}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <ImPriceTags className="text-blue-500" /> {item.fees}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <IoIosTime className="text-blue-500" /> {item.dateTime}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ImPriceTags />
-                  {item.fees}
-                </div>
-                <div className="flex items-center gap-2">
-                  <IoIosTime />
-                  {item.dateTime}
-                </div>
+
+                {/* Join Button */}
+                <button
+                  className="mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg shadow-lg hover:shadow-xl hover:from-purple-600 hover:to-blue-500 transform hover:scale-105 transition-all duration-300"
+                  onClick={() => openModal(item)}
+                >
+                  Join Now
+                </button>
               </div>
-              <button
-                className="mt-4 bg-blue-500 text-white p-2 rounded"
-                onClick={() => openModal(item)}
-              >
-                Join Now
-              </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {selectedCamp && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+          className="fixed inset-0 bg-black bg-opacity-50 mt-20 flex items-center justify-center z-50"
           onClick={closeModal}
         >
           <div
-            className="bg-white p-8 rounded"
+            className="relative bg-white w-full max-w-md p-8 rounded-lg shadow-lg animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal modal-open">
-              <div className="modal-box ">
-                <h3 className="font-bold text-lg">
-                  Join {selectedCamp.campName}
-                </h3>
-                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                  <input
-                    type="text"
-                    name="campName"
-                    placeholder="camp Name"
-                    defaultValue={selectedCamp.campName}
-                    className="input input-bordered w-full"
-                    readOnly
-                  />
-                  <input
-                    type="text"
-                    name="campfees"
-                    placeholder="Camp Fees"
-                    defaultValue={selectedCamp.fees}
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="text"
-                    name="location"
-                    defaultValue={selectedCamp.location}
-                    placeholder="location"
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="text"
-                    name="healthcareProfessional"
-                    placeholder="healthcareProfessional name"
-                    defaultValue={selectedCamp.healthcareProfessional}
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="text"
-                    name="participantName"
-                    placeholder="Participant Name"
-                    defaultValue={user?.displayName}
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="text"
-                    name="email"
-                    placeholder="Participant Email"
-                    defaultValue={user?.email}
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="number"
-                    name="age"
-                    placeholder="Age"
-                    className="input input-bordered w-full"
-                  />
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone"
-                    className="input input-bordered w-full"
-                  />
-                  <select name="gender" className="input input-bordered w-full">
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
+            {/* Close Button */}
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+              onClick={closeModal}
+            >
+              ✕
+            </button>
 
-                  <input
-                    name="emergencyContact"
-                    type="phone"
-                    placeholder="Emergency Contact"
-                    className="input input-bordered w-full"
-                  />
-                  <div className="modal-action">
-                    <button type="submit" className="btn btn-primary">
-                      Submit
-                    </button>
-                    <button type="button" onClick={closeModal} className="btn">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+            {/* Modal Title */}
+            <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">
+              Join{" "}
+              <span className="text-blue-500">{selectedCamp.campName}</span>
+            </h3>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="participantName"
+                placeholder="Participant Name"
+                defaultValue={user?.displayName}
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Participant Email"
+                defaultValue={user?.email}
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <input
+                type="number"
+                name="age"
+                placeholder="Age"
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone"
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <select
+                name="gender"
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <input
+                name="emergencyContact"
+                type="text"
+                placeholder="Emergency Contact"
+                className="input input-bordered w-full px-4 py-2 rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-300"
+              >
+                Submit
+              </button>
+            </form>
           </div>
         </div>
       )}
+
+      {/* Custom Animation */}
+      <style>{`
+        @keyframes slideUp {
+        from {
+        transform: translateY(20px);
+        opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-in-out;
+}
+
+      `}</style>
     </div>
   );
 };

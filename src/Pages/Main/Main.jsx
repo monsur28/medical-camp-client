@@ -4,11 +4,15 @@ import Footer from "../../Components/Footer/Footer";
 
 const Main = () => {
   return (
-    <div>
-      <Navbar></Navbar>
-      <Outlet></Outlet>
+    <main>
+      <div className="border border-solid sticky top-0 z-[1000]">
+        <Navbar></Navbar>
+      </div>
+      <div className="max-w-screen-xl mx-auto cinzel">
+        <Outlet></Outlet>
+      </div>
       <Footer></Footer>
-    </div>
+    </main>
   );
 };
 

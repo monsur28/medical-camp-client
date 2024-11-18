@@ -55,7 +55,7 @@ const Login = () => {
   return (
     <div>
       <Helmet>
-        <title>MedCamp | Login</title>
+        <title>ITMart | Login</title>
       </Helmet>
       <section className="p-6 dark:bg-gray-100 dark:text-gray-800">
         <div className="container grid gap-6 mx-auto text-center lg:grid-cols-2 xl:grid-cols-2">
